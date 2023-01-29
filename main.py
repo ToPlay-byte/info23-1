@@ -6,10 +6,8 @@ from bs4 import BeautifulSoup
 import requests
 
 bot_token = '5194007208:AAGrNcr154AqweZVbLgCfA65q69hcujvt6w'
-
-PROXY_URL = "http://proxy.server:3128"
 """Токен бота."""
-bot = Bot(token=bot_token, proxy=PROXY_URL)
+bot = Bot(token=bot_token)
 """Переменная, отвечающая за самого бота."""
 dp = Dispatcher(bot)
 """Диспетчер(Как я понял, позволяет реагировать боту на какие-то события)."""
