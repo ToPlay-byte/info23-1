@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from bs4 import BeautifulSoup
-import requests
+import aiohttp
 
 bot_token = '5194007208:AAGrNcr154AqweZVbLgCfA65q69hcujvt6w'
 """Токен бота."""
@@ -59,7 +58,7 @@ changes_text = """Зміни бота в останніх версії:
 Зміни в минулих версіях:
 - Виправлення помилок та доробки бота.
 
-Версія боту: не встановлено."""
+Версія бота: не встановлено."""
 """Текст для ответа пользователям на запрос об изменениях в боте. Желательно новые изменения указывать здесь."""
 
 def check_weak_day_input_in_message(message: types.Message):
@@ -92,7 +91,7 @@ def find_weak_day_in_message(message:types.Message, current_weak_number:int):
         if(current_word == message.text.lower()):
             return True
     return False
-def find_lessons(soup:BeautifulSoup):
+def find_lessons(soup:BeautifulSoup)->(tuple[ValueError, int]|tuple[list, int]):
     """Эта функция проходится по переменной soup(HTML-элемент, который содержит элементы таблицы, в которой находятся сами пары), где отображаются пары и вписывает их в переменную  list_of_lessons(список аудиторий).
 
 Описание процесса: 
@@ -156,17 +155,16 @@ def find_lessons(soup:BeautifulSoup):
                 continue
             if (j.get("colspan") in ["2","4"]):
                 list_of_lessons[n].append(j)
-                
+                if(j.get("colspan") == "4" or len(list_of_lessons[n]) == 2):
+                    break
         if(len(list_of_lessons[n]) == 1 and list_of_lessons[n][0].get("colspan") == "2"):
             list_of_lessons[n].append(None)
             
         if (len(list_of_lessons) == lessons_max_count):
             break
-        
     if (group_was_found == False):
         return ValueError("Group not found"), lessons_max_count
     return list_of_lessons, lessons_max_count
-
 
 def find_lessons_audits(soup_audits:BeautifulSoup):
     """Эта функция проходится по переменной soup_audits(HTML-элемент, который содержит элементы таблицы, в которой находятся сами аудитории), где отображаются аудитории и вписывает их в переменную list_of_lessons_audiences(список аудиторий)
@@ -281,8 +279,7 @@ def find_lecture_or_practice(list_of_lessons:list, list_of_lessons_audiences:lis
     
     return lessons
 
-
-def data(link:str):
+async def data(link:str):
     """ По ссылке, которая передаётся в качестве аргумента, происходит поиск на странице Google Sheets нужного дня недели, занятий и их аудиторий. Внутри функции это всё задокументировано.
     
 Принимает: 
@@ -294,13 +291,16 @@ def data(link:str):
 - TypeError("Unknown type of list_of_lessons")(ошибка, которая гласит, что list_of_lessons имеет тип, который не удалось обработать);
 - list_of_lessons, которое имеет значение ValueError("Group not found")(ошибка, которая гласит, что группа, которая указаная в переменной current_group, не была найдена)."""
     # Получение ответа от страницы.
-    response = requests.get(link, headers=headers)
-    # Получаем HTML-элементы, которые относятся к элементам таблицы, в которых находятся нужные пары.
-    soup = BeautifulSoup(response.content, 'html.parser').find('div', id='1778922595') \
-        .find('div', class_="grid-container").find('table', class_='waffle').find('tbody')
-    # Получаем HTML-элементы, которые относятся к элементам таблицы, в которых находятся нужные аудитории.
-    soup_audits = BeautifulSoup(response.content, 'html.parser').find('div', id='436522941') \
-        .find('div', class_="grid-container").find('table', class_='waffle').find('tbody')
+    async with aiohttp.ClientSession() as session:
+        async with session.request("get",link,headers=headers) as response_temp:
+            response = await response_temp.text()
+            # Получаем HTML-элементы, которые относятся к элементам таблицы, в которых находятся нужные пары.
+            soup =  BeautifulSoup(response, 'html.parser').find('div', id='1778922595') \
+                .find('div', class_="grid-container").find('table', class_='waffle').find('tbody')
+            # Получаем HTML-элементы, которые относятся к элементам таблицы, в которых находятся нужные аудитории.
+            soup_audits =  BeautifulSoup(response, 'html.parser').find('div', id='436522941') \
+                .find('div', class_="grid-container").find('table', class_='waffle').find('tbody')
+    
     
     # Создаём переменную list_of_lessons(список пар) и присваиваем ей значение результата выполнения
     # функции find_lessons(), которая в качестве аргумента принимает переменную soup.
@@ -403,7 +403,7 @@ text=f"""Проводжу зв'язок із Google Sheets, щоб дізнат�
 Після успішної обробки данних я видалю це повідомлення та відправлю розклад занять новим повідомленням.""")
     # Создаём переменную lessons и присваиваем ей значение результата выполнения функции data(), в качестве
     # параметров передаём ссылку на нужный день недели.
-    lessons = data(url[current_weak_number])
+    lessons = await data(url[current_weak_number])
     # Удаляет сообщение, которое предупреждало пользователя об обработке данных.
     await bot.delete_message(chat_id=message.chat.id,
                        message_id=message_text.message_id)
@@ -424,7 +424,7 @@ text=f"""Проводжу зв'язок із Google Sheets, щоб дізнат�
                 # - увеличиваем значение номера занятия на 1.
                 lesson_index += 1
         # Выводит новое сообщение с расписание занятий в Telegram.
-        await bot.send_message(
+        m = await bot.send_message(
             chat_id=message.chat.id,
             text = text_to_send)
     # А если тип переменной lessons - это ValueError...
@@ -444,7 +444,7 @@ text=f"""Проводжу зв'язок із Google Sheets, щоб дізнат�
     else:
         # ...выводим пользователю сообщение, что у нас неизвестная ошибка.
         await bot.send_message(chat_id=message.chat.id,
-                                text=f"Виникла невідома помилка.")      
+                                text=f"Виникла невідома помилка.")
 
 @dp.message_handler(lambda message: check_weak_day_input_in_message(message))
 async def output_weak_day_lessons(message: types.Message):
