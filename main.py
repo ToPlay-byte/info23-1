@@ -1,3 +1,4 @@
+
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
@@ -61,7 +62,7 @@ changes_text = """Зміни бота в останніх версії:
 Версія бота: не встановлено."""
 """Текст для ответа пользователям на запрос об изменениях в боте. Желательно новые изменения указывать здесь."""
 
-def check_weak_day_input_in_message(message: types.Message):
+def check_weak_day_input_in_message(message):
     """Эта функция проверяет, что ввёл пользователь. Для этого его сообщение будет проверяться в функции find_weak_day_in_message(). Если всё таки выйдет, что такой день недели будет найден, то тогда в переменную needeble_day(нужный день недели) указывает индекс нужного дня для дальнейшего вывода расписания занятий и вернёт True. А если не выйдет, то полностью пройдётся по циклу и вернёт False.
 
 Принимает: 
@@ -77,7 +78,7 @@ def check_weak_day_input_in_message(message: types.Message):
             return True
     return False
 
-def find_weak_day_in_message(message:types.Message, current_weak_number:int):
+def find_weak_day_in_message(message, current_weak_number):
     """Эта функция проверяет, соответствует ли указаный пользователем в сообщении день недели с тем, номер которого указан в качестве переменной current_weak_number. Если да, возвращает True, иначе False.
 
 Принимает: 
@@ -90,8 +91,8 @@ def find_weak_day_in_message(message:types.Message, current_weak_number:int):
     for current_word in current_weak_word_list:
         if(current_word == message.text.lower()):
             return True
-    return False
-def find_lessons(soup:BeautifulSoup)->(tuple[ValueError, int]|tuple[list, int]):
+    return False 
+def find_lessons(soup):
     """Эта функция проходится по переменной soup(HTML-элемент, который содержит элементы таблицы, в которой находятся сами пары), где отображаются пары и вписывает их в переменную  list_of_lessons(список аудиторий).
 
 Описание процесса: 
@@ -166,7 +167,7 @@ def find_lessons(soup:BeautifulSoup)->(tuple[ValueError, int]|tuple[list, int]):
         return ValueError("Group not found"), lessons_max_count
     return list_of_lessons, lessons_max_count
 
-def find_lessons_audits(soup_audits:BeautifulSoup):
+def find_lessons_audits(soup_audits):
     """Эта функция проходится по переменной soup_audits(HTML-элемент, который содержит элементы таблицы, в которой находятся сами аудитории), где отображаются аудитории и вписывает их в переменную list_of_lessons_audiences(список аудиторий)
 
 Описание процесса: 
@@ -194,7 +195,7 @@ def find_lessons_audits(soup_audits:BeautifulSoup):
     
     return list_of_lessons_audiences
 
-def find_lecture_or_practice(list_of_lessons:list, list_of_lessons_audiences:list):
+def find_lecture_or_practice(list_of_lessons, list_of_lessons_audiences):
     """Эта функция проходится по переменным list_of_lessons(список пар) и list_of_lessons_audiences(список аудиторий) и добавляет в локальную переменную lessons значение, которое говорит, пара, которую сейчас расматривает цикл, должна быть практикой, лекцией или её вообще не должно быть.
 
 Принимает:
@@ -279,7 +280,7 @@ def find_lecture_or_practice(list_of_lessons:list, list_of_lessons_audiences:lis
     
     return lessons
 
-async def data(link:str):
+async def data(link):
     """ По ссылке, которая передаётся в качестве аргумента, происходит поиск на странице Google Sheets нужного дня недели, занятий и их аудиторий. Внутри функции это всё задокументировано.
     
 Принимает: 
@@ -342,7 +343,7 @@ async def data(link:str):
     return lessons
 
 @dp.message_handler(commands='start')
-async def _start(message: types.Message):
+async def _start(message):
     """ Приём сообщения для старта бота. Сам бот после активации выводит приветствие и предлагает отправить сообщение "/расписание занятий".
     
 Принимает:
@@ -355,7 +356,7 @@ async def _start(message: types.Message):
 timetable_of_lessons_syntax = ['/расписание занятий', '/розклад занять',
                                '/расписание', '/розклад']
 """Массив, который содержит 4 разных варианта написания команды, чтобы активировать функцию _week()."""
-def check_right_input_timetable_of_lessons(message:types.Message):
+def check_right_input_timetable_of_lessons(message):
     """Проверяет, правильно ли введена команда для вывода Telegram-кнопок пользователю.
 
 Сама функция создаёт переменную message_text, которая принимает текст сообщения пользователя в низком регистре. После идёт проверка, соответствует ли значение этой переменной хотя бы одному из элементов массива timetable_of_lessons_syntax. Если да, то возвращает True, иначе False.
@@ -373,7 +374,7 @@ def check_right_input_timetable_of_lessons(message:types.Message):
     return False
 
 @dp.message_handler(lambda message:check_right_input_timetable_of_lessons(message))
-async def _week(message: types.Message):
+async def _week(message):
     """Приём сообщения для вывода кнопок, чтобы отдавать команды боту не с помощью написания их с клавиатуры, а через специальные кнопки Telegram.
     
 Принимает:
@@ -391,7 +392,7 @@ async def _week(message: types.Message):
     
     await bot.send_message(message.chat.id, 'Виберіть день тижня:', reply_markup=days)
 
-async def weak_day_lessons_construct(message: types.Message, current_weak_number:int):
+async def weak_day_lessons_construct(message, current_weak_number):
     """Предназначен для создания списка занятий за конкретный день недели и последующего вывода сообщения о нём пользователю. Внутри описан этот процес.
 
 Принимает:
@@ -447,7 +448,7 @@ text=f"""Проводжу зв'язок із Google Sheets, щоб дізнат�
                                 text=f"Виникла невідома помилка.")
 
 @dp.message_handler(lambda message: check_weak_day_input_in_message(message))
-async def output_weak_day_lessons(message: types.Message):
+async def output_weak_day_lessons(message):
     """Начинает процесс вывода расписания занятий, если пользователь ввёл правильную команду.
     
 Принимает:
@@ -457,7 +458,7 @@ async def output_weak_day_lessons(message: types.Message):
     
 
 @dp.message_handler(lambda message: message.text.lower() == 'русский военный корабль')
-async def warschip(message: types.Message):
+async def warschip(message):
     """Чёткий и ясный ответ на всеми известную фразу.
     
 Принимает:
@@ -465,7 +466,7 @@ async def warschip(message: types.Message):
     await bot.send_message(message.chat.id, 'иди на хуй')
 
 @dp.message_handler(lambda message: message.text.lower() == "/зміни" or message.text.lower() == "/изменения")
-async def changes(message: types.Message):
+async def changes(message):
     """Выводить пользователю сообщение, которое покажет изменения, которые произошли в боте.
     
 Принимает:
