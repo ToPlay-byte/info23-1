@@ -181,15 +181,24 @@ def find_lessons_audits(soup_audits):
     list_of_lessons_audiences = []
         
     for g in soup_audits.find_all('tr'):
-        if(g.find("td").get_text().find(current_group) >= 0):
+        if(current_group in g.find("td").get_text()):
             for j in g.find_all('td'):
-                if(j.get_text().find(current_group) >= 0):
+                if(current_group in j.get_text()):
                     continue
                 if(len(j.get_text().replace(" ", "")) == 0 or j.get_text() == "-"):
-                    list_of_lessons_audiences.append("")
+                    list_of_lessons_audiences.append(" (не вказано)")
+                elif("дистанційно" in j.get_text()):
+                    if(j.get("colspan") != None):
+                        for i in range(0, int(j.get("colspan"))):
+                            list_of_lessons_audiences.append(f" ({j.get_text()})")
+                    else:
+                        list_of_lessons_audiences.append(f" ({j.get_text()})")
                 else:
-                    list_of_lessons_audiences.append(f" (Аудиторія {j.get_text()})")
-
+                    if(j.get("colspan") != None):
+                        for i in range(0, int(j.get("colspan"))):
+                            list_of_lessons_audiences.append(f" (Аудиторія {j.get_text()})")
+                    else:
+                        list_of_lessons_audiences.append(f" (Аудиторія {j.get_text()})")
         if(len(list_of_lessons_audiences) == 6):
             break
     
