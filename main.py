@@ -9,7 +9,7 @@ import pytz
 
 
 """Токен бота."""
-bot_token = ''
+bot_token = '6394112244:AAEZpbdodneUIuegQW7aBe6fDqqGTNQFfJ0'
 """Переменная, отвечающая за самого бота."""
 bot = Bot(token=bot_token)
 """Диспетчер(Как я понял, позволяет реагировать боту на какие-то события)."""
