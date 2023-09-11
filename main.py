@@ -55,9 +55,13 @@ current_group = "407"
 
 def get_date():
     """Получаем  нужную дату для отображения расписания"""
-    week = datetime.now(pytz.timezone('Europe/Kyiv')).isocalendar().week
-    year = datetime.today().year
-    date = datetime.strptime(f'{year}, {week}, {needeble_day}', '%Y, %W, %w').strftime('%d.%m.%Y')
+    current_date = datetime.now(pytz.timezone('Europe/Kyiv'))
+    current_year = current_date.year
+    week = current_date.isocalendar().week
+    current_day = current_date.isocalendar().weekday
+    if current_day > needeble_day:
+        week += 1
+    date = datetime.strptime(f'{current_year}, {week}, {needeble_day}', '%Y, %W, %w').strftime('%d.%m.%Y')
     return date
 
 
