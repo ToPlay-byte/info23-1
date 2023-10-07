@@ -66,7 +66,7 @@ def get_date():
 
 
 def get_request():
-    """Получаем запрос на строницу с расписанием"""
+    """Получаем запрос на страницу с расписанием"""
     global form_data
     # Изменяем форму для запроса на страницу
     form_data['date-picker'] = f'{get_date()}+-+{get_date()}'
@@ -114,7 +114,7 @@ def find_weak_day_in_message(message, current_weak_number):
     return False
 
 
-async def get_data():
+def get_data():
     data = {}
     req = get_request()
     soap = BeautifulSoup(req.content, 'html.parser')
@@ -195,7 +195,7 @@ async def _week(message):
     await bot.send_message(message.chat.id, 'Виберіть день тижня:', reply_markup=days)
 
 
-async def weak_day_lessons_construct(message, current_weak_number):
+async def weak_day_lessons_construct(message):
     """Предназначен для создания списка занятий за конкретный день недели и последующего вывода сообщения
      о нём пользователю. Внутри описан этот процесс.
 
@@ -208,7 +208,7 @@ async def weak_day_lessons_construct(message, current_weak_number):
                                           text='Отримуємо дані...')
     # Создаём переменную lessons и присваиваем ей значение результата выполнения функции data(), в качестве
     # параметров передаём ссылку на нужный день недели.
-    lessons = await get_data()
+    lessons = get_data()
     # Удаляет сообщение, которое предупреждало пользователя об обработке данных.
     await bot.delete_message(chat_id=message.chat.id,
                              message_id=message_text.message_id)
@@ -220,7 +220,7 @@ async def weak_day_lessons_construct(message, current_weak_number):
     else:
         text_to_send = 'Немає пар'
 
-    await bot.send_message(chat_id=message.chat.id,text=text_to_send)
+    await bot.send_message(chat_id=message.chat.id, text=text_to_send)
 
 
 @dp.message_handler(lambda message: check_weak_day_input_in_message(message))
@@ -230,7 +230,7 @@ async def output_weak_day_lessons(message):
 Принимает:
 - message(сообщение, которое ввёл пользователь)."""
     # Если всё окей, то запускает цепочку функций, которые выводят сообщение.
-    await weak_day_lessons_construct(message, needeble_day)
+    await weak_day_lessons_construct(message)
 
 
 @dp.message_handler(lambda message: message.text.lower() == 'русский военный корабль')
