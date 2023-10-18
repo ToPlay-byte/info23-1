@@ -1,17 +1,26 @@
+import os
+
+from datetime import datetime
+
+import pytz
+import requests
+
+from dotenv import load_dotenv
+
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+
 from bs4 import BeautifulSoup
-import requests
-from datetime import datetime
-import pytz
+
+load_dotenv()
 
 
 """Токен бота."""
-bot_token = '6394112244:AAEZpbdodneUIuegQW7aBe6fDqqGTNQFfJ0'
+TOKEN = os.environ.get('TOKEN')
 """Переменная, отвечающая за самого бота."""
-bot = Bot(token=bot_token)
+bot = Bot(token=TOKEN)
 """Диспетчер(Как я понял, позволяет реагировать боту на какие-то события)."""
 dp = Dispatcher(bot)
 """Заголовки запросов."""
